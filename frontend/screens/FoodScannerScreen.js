@@ -14,7 +14,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { Camera } from "expo-camera";
+import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -29,7 +29,7 @@ import {
 } from "../styles/colors";
 
 export default function FoodScannerScreen() {
-  const [hasPermission, setHasPermission] = useState(null);
+  const [permission, requestPermission] = useCameraPermissions();
   const [showCamera, setShowCamera] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [analysisResult, setAnalysisResult] = useState(null);
@@ -40,8 +40,9 @@ export default function FoodScannerScreen() {
   // Request camera permissions on mount and list available models
   React.useEffect(() => {
     (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === "granted");
+      if (!permission?.granted) {
+        await requestPermission();
+      }
 
       // Debug: List available Gemini models
       try {
@@ -67,7 +68,8 @@ export default function FoodScannerScreen() {
         setShowCamera(false);
         await analyzeImage(photo.base64);
       } catch (error) {
-        Alert.alert("Error", "Failed to take picture");
+        console.error("Camera error:", error);
+        Alert.alert("Error", "Failed to take picture: " + error.message);
       }
     }
   };
@@ -228,17 +230,20 @@ export default function FoodScannerScreen() {
     }
   };
 
-  if (hasPermission === null) {
+  if (!permission) {
     return (
       <View style={styles.container}>
         <Text>Requesting camera permission...</Text>
       </View>
     );
   }
-  if (hasPermission === false) {
+  if (!permission.granted) {
     return (
       <View style={styles.container}>
         <Text>No access to camera</Text>
+        <TouchableOpacity onPress={requestPermission}>
+          <Text>Grant Camera Permission</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -246,7 +251,7 @@ export default function FoodScannerScreen() {
   if (showCamera) {
     return (
       <View style={styles.container}>
-        <Camera style={styles.camera} ref={cameraRef} ratio="4:3" />
+        <CameraView style={styles.camera} ref={cameraRef} facing="back" />
         <View style={styles.cameraControls}>
           <TouchableOpacity
             style={styles.cancelButton}

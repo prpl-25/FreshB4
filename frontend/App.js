@@ -12,6 +12,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
+import { View, Image, Text, StyleSheet } from "react-native";
 
 // Import screens
 import FoodScannerScreen from "./screens/FoodScannerScreen";
@@ -22,6 +23,18 @@ import RecipesScreen from "./screens/RecipesScreen";
 import { colors } from "./styles/colors";
 
 const Tab = createBottomTabNavigator();
+
+// Custom Header Component with Logo
+const CustomHeader = ({ title }) => (
+  <View style={styles.headerContainer}>
+    <Image 
+      source={require('./assets/Logo.png')} 
+      style={styles.headerLogo}
+      resizeMode="contain"
+    />
+    <Text style={styles.headerTitle}>{title}</Text>
+  </View>
+);
 
 export default function App() {
   return (
@@ -72,7 +85,7 @@ export default function App() {
           component={FoodScannerScreen}
           options={{
             title: "Food Scanner",
-            headerTitle: "FreshB4 Scanner",
+            headerTitle: () => <CustomHeader title="Scanner" />,
           }}
         />
         <Tab.Screen
@@ -80,7 +93,7 @@ export default function App() {
           component={PantryScreen}
           options={{
             title: "My Pantry",
-            headerTitle: "FreshB4 Pantry",
+            headerTitle: () => <CustomHeader title="Pantry" />,
           }}
         />
         <Tab.Screen
@@ -88,10 +101,29 @@ export default function App() {
           component={RecipesScreen}
           options={{
             title: "Recipes",
-            headerTitle: "FreshB4 Recipes",
+            headerTitle: () => <CustomHeader title="Recipes" />,
           }}
         />
       </Tab.Navigator>
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  headerLogo: {
+    width: 80,
+    height: 45,
+    marginRight: 12,
+  },
+  headerTitle: {
+    color: colors.surface,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+});
